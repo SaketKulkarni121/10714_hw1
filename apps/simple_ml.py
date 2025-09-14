@@ -127,7 +127,43 @@ def nn_epoch(X, y, W1, W2, lr=0.1, batch=100):
     """
 
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
+    for i in range(0, X.shape[0], batch):
+        end_idx = min(i + batch, X.shape[0])
+        X_batch = X[i:end_idx]
+        y_batch = y[i:end_idx]
+        
+        # Convert numpy arrays to Tensors
+        X_tensor = ndl.Tensor(X_batch)
+        
+        # One-hot encode y_batch
+        y_one_hot = np.zeros((y_batch.shape[0], W2.shape[1]), dtype=np.float32)
+        y_one_hot[np.arange(y_batch.size), y_batch] = 1
+        y_tensor = ndl.Tensor(y_one_hot)
+        
+        # Forward pass: Z1 = ReLU(X @ W1), Z = Z1 @ W2
+        Z1 = ndl.relu(ndl.matmul(X_tensor, W1))
+        Z = ndl.matmul(Z1, W2)
+        
+        # Compute loss using softmax cross-entropy
+        loss = softmax_loss(Z, y_tensor)
+        
+        # Backward pass
+        loss.backward()
+        
+        # Get gradients and update weights
+        current_batch_size = end_idx - i
+        
+        # Update W1
+        if W1.grad is not None:
+            W1_np = W1.numpy() - lr * W1.grad.numpy()
+            W1 = ndl.Tensor(W1_np)
+        
+        # Update W2  
+        if W2.grad is not None:
+            W2_np = W2.numpy() - lr * W2.grad.numpy()
+            W2 = ndl.Tensor(W2_np)
+    
+    return W1, W2
     ### END YOUR SOLUTION
 
 
